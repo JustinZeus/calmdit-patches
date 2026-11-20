@@ -13,6 +13,8 @@
         <string name="summary_key">"First 'item' text
 Second \"item\" text"</string>
 
+    Modified by Calmdit (https://github.com/JustinZeus/calmdit-patches), 2026: post header strings.
+
 -->
 <resources>
     <string name="reddit_privacy_policy">Reddit privacy policy</string>
@@ -119,6 +121,12 @@ To use an older version, you must &lt;b>uninstall&lt;/b> Reddit and then install
     <string name="morphe_hide_popular_tab_summary">Hides the Popular tab of the home feed</string>
     <string name="morphe_hide_interactive_posts_title">Hide interactive posts</string>
     <string name="morphe_hide_interactive_posts_summary">Hides game and other interactive app posts from the home feed and other recommended feeds</string>
+    <string name="morphe_hide_feed_post_username_title">Hide usernames in feeds</string>
+    <string name="morphe_hide_feed_post_username_summary">Hides the username in the header of posts in the feeds</string>
+    <string name="morphe_hide_feed_post_user_avatar_title">Hide user avatars in feeds</string>
+    <string name="morphe_hide_feed_post_user_avatar_summary">Hides the user avatar in the header of posts in the feeds</string>
+    <string name="morphe_hide_feed_post_subreddit_icon_title">Hide subreddit icons in feeds</string>
+    <string name="morphe_hide_feed_post_subreddit_icon_summary">Hides the subreddit icon in the header of posts in the feeds</string>
     <string name="morphe_hide_trending_shelves_title">Hide Trending shelves</string>
     <string name="morphe_hide_trending_shelves_summary">Hides the Trending shelves from feed and search suggestions</string>
     <string name="morphe_hide_videos_for_you_shelf_title">Hide \'Videos for you\' shelf</string>

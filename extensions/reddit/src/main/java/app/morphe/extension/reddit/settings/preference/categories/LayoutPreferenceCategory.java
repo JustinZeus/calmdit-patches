@@ -2,6 +2,8 @@
  * Copyright 2026 Morphe.
  * https://github.com/MorpheApp/morphe-patches
  *
+ * Modified by Calmdit (https://github.com/JustinZeus/calmdit-patches), 2026: post header settings.
+ *
  * See the included NOTICE file for GPLv3 Section 7 terms that apply to this code.
  */
 
@@ -26,6 +28,7 @@ import app.morphe.extension.reddit.patches.HideCommunitiesShelfPatch;
 import app.morphe.extension.reddit.patches.HideHomeTabsPatch;
 import app.morphe.extension.reddit.patches.HideInteractivePostsPatch;
 import app.morphe.extension.reddit.patches.HideMediaViewerComponentsPatch;
+import app.morphe.extension.reddit.patches.HidePostHeaderElementsPatch;
 import app.morphe.extension.reddit.patches.HideTrendingShelvesPatch;
 import app.morphe.extension.reddit.patches.HideVideosForYouShelfPatch;
 import app.morphe.extension.reddit.patches.HighQualityAvatarsPatch;
@@ -65,6 +68,7 @@ public class LayoutPreferenceCategory extends ConditionalPreferenceCategory {
                 HideCommunitiesShelfPatch.isPatchIncluded() ||
                 HideHomeTabsPatch.isPatchIncluded() ||
                 HideInteractivePostsPatch.isPatchIncluded() ||
+                HidePostHeaderElementsPatch.isPatchIncluded() ||
                 HideTrendingShelvesPatch.isPatchIncluded() ||
                 HideVideosForYouShelfPatch.isPatchIncluded() ||
                 FullWidthFeedMediaPatch.isPatchIncluded() ||
@@ -151,6 +155,21 @@ public class LayoutPreferenceCategory extends ConditionalPreferenceCategory {
             addPreference(new BooleanSettingPreference(
                     context,
                     Settings.HIDE_INTERACTIVE_POSTS
+            ));
+        }
+
+        if (HidePostHeaderElementsPatch.isPatchIncluded()) {
+            addPreference(new BooleanSettingPreference(
+                    context,
+                    Settings.HIDE_FEED_POST_USERNAME
+            ));
+            addPreference(new BooleanSettingPreference(
+                    context,
+                    Settings.HIDE_FEED_POST_USER_AVATAR
+            ));
+            addPreference(new BooleanSettingPreference(
+                    context,
+                    Settings.HIDE_FEED_POST_SUBREDDIT_ICON
             ));
         }
 

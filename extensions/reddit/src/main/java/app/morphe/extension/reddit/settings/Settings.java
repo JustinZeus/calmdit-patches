@@ -2,6 +2,8 @@
  * Copyright 2026 Morphe.
  * https://github.com/MorpheApp/morphe-patches
  *
+ * Modified by Calmdit (https://github.com/JustinZeus/calmdit-patches), 2026: post header settings.
+ *
  * See the included NOTICE file for GPLv3 Section 7 terms that apply to this code.
  */
 package app.morphe.extension.reddit.settings;
@@ -79,6 +81,9 @@ public class Settings extends BaseSettings {
     public static final BooleanSetting FULL_WIDTH_FEED_MEDIA = new BooleanSetting("morphe_full_width_feed_media", FALSE, true);
     public static final BooleanSetting HIDE_ASK_BUTTON = new BooleanSetting("morphe_hide_ask_button", FALSE, true);
     public static final BooleanSetting HIDE_COMMUNITIES_SHELF = new BooleanSetting("morphe_hide_communities_shelf", FALSE, true);
+    public static final BooleanSetting HIDE_FEED_POST_SUBREDDIT_ICON = new BooleanSetting("morphe_hide_feed_post_subreddit_icon", FALSE, true);
+    public static final BooleanSetting HIDE_FEED_POST_USER_AVATAR = new BooleanSetting("morphe_hide_feed_post_user_avatar", FALSE, true);
+    public static final BooleanSetting HIDE_FEED_POST_USERNAME = new BooleanSetting("morphe_hide_feed_post_username", FALSE, true);
     public static final BooleanSetting HIDE_FOLLOWING_TAB = new BooleanSetting("morphe_hide_following_tab", FALSE, true, parentNot(DISABLE_MODERN_HOME));
     public static final BooleanSetting HIDE_FOR_YOU_TAB = new BooleanSetting("morphe_hide_for_you_tab", FALSE, true, parentNot(DISABLE_MODERN_HOME));
     public static final BooleanSetting HIDE_INTERACTIVE_POSTS = new BooleanSetting("morphe_hide_interactive_posts", FALSE, true);
