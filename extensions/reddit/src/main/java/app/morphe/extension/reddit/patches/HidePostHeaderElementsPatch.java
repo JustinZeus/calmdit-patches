@@ -18,7 +18,8 @@ import app.morphe.extension.shared.Logger;
  * <p>
  * The header shows the subreddit with its icon, or in feeds such as a subreddit feed,
  * the author with their avatar. The compact view shows the subreddit name or username
- * without an icon.
+ * without an icon. The post age of a hidden username is hidden too, as it looks out of place
+ * on its own.
  */
 @SuppressWarnings("unused")
 public final class HidePostHeaderElementsPatch {
@@ -53,7 +54,7 @@ public final class HidePostHeaderElementsPatch {
     }
 
     private static boolean isUserAvatar(Object shape, @Nullable String url) {
-        final String shapeName = ((Enum<?>) shape).name();
+        String shapeName = ((Enum<?>) shape).name();
         if (SHAPE_SNOO_AVATAR.equals(shapeName) || SHAPE_USER_IMAGE.equals(shapeName)) {
             return true;
         }
@@ -98,15 +99,21 @@ public final class HidePostHeaderElementsPatch {
     }
 
     /**
+     * Injection point. Called by the header of a post in the card view that shows the username,
+     * to also hide its post age.
+     */
+    public static boolean hideUsername() {
+        return Settings.HIDE_FEED_POST_USERNAME.get();
+    }
+
+    /**
      * Injection point. Called with the subreddit name or username that the header of a post
      * in the compact view shows.
+     *
+     * @return If the username and its post age are not shown.
      */
-    @Nullable
-    public static String getCompactLabel(@Nullable String label) {
-        if (Settings.HIDE_FEED_POST_USERNAME.get()
-                && label != null && label.startsWith(USERNAME_PREFIX)) {
-            return "";
-        }
-        return label;
+    public static boolean hideCompactLabel(@Nullable String label) {
+        return Settings.HIDE_FEED_POST_USERNAME.get()
+                && label != null && label.startsWith(USERNAME_PREFIX);
     }
 }

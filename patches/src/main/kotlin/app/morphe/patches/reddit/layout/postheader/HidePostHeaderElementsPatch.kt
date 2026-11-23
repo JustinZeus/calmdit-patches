@@ -9,9 +9,11 @@
 package app.morphe.patches.reddit.layout.postheader
 
 import app.morphe.patcher.Fingerprint
+import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
 import app.morphe.patcher.patch.patch
 import app.morphe.patcher.util.findFreeRegister
+import app.morphe.patcher.util.getFreeRegisterProvider
 import app.morphe.patcher.util.registersUsed
 import app.morphe.patcher.util.smali.ExternalLabel
 import app.morphe.patches.reddit.misc.settings.settingsPatch
@@ -29,8 +31,8 @@ private const val EXTENSION_CLASS =
 val hidePostHeaderElementsPatch = patch(
     name = "Hide post header elements",
     description = "Adds options to hide the username, the user avatar and the subreddit icon " +
-            "in the header of posts in the feeds. The post detail screen is not changed. " +
-            "This patch works with Reddit 2026.40.0 and newer."
+            "in the header of posts in the feeds. Hiding the username also hides its post age. " +
+            "The post detail screen is not changed. This patch works with Reddit 2026.40.0 and newer."
 ) {
     compatibleWith(COMPATIBILITY_REDDIT)
 
@@ -53,13 +55,10 @@ val hidePostHeaderElementsPatch = patch(
             it.hideIconCall(it.instructionMatches.last().index)
         }
 
-        // Usernames, in feeds that show the author instead of the subreddit.
-        MetadataHeaderElementLabelFingerprint.replaceLabelText(
-            "getUsernameLabel"
-        )
-        CompactPostHeaderFingerprint.replaceLabelText(
-            "getCompactLabel"
-        )
+        // Usernames and their post age, in feeds that show the author instead of the subreddit.
+        // The post age is hidden too, as it looks out of place without the username.
+        hideCardUsername()
+        hideCompactUsername()
 
         setExtensionIsPatchIncluded(EXTENSION_CLASS)
     }
@@ -87,22 +86,72 @@ private fun Fingerprint.hideIconCall(index: Int) {
     }
 }
 
-/**
- * Passes the text of the header label, created by the last matched constructor call,
- * through [extensionMethod] of the extension.
- */
-private fun Fingerprint.replaceLabelText(extensionMethod: String) {
-    method.apply {
-        val index = instructionMatches.last().index
-        // Parameters: label, text.
-        val textRegister = getInstruction(index).registersUsed[1]
+private fun hideCardUsername() {
+    // Username label, which is created after removing the username prefix.
+    val usernameLabelType = MetadataHeaderElementLabelFingerprint.let {
+        it.method.apply {
+            val index = it.instructionMatches.last().index
+            // Parameters: label, text.
+            val textRegister = getInstruction(index).registersUsed[1]
 
-        addInstructionsAtControlFlowLabel(
-            index,
+            addInstructionsAtControlFlowLabel(
+                index,
+                """
+                    invoke-static/range { v$textRegister .. v$textRegister }, $EXTENSION_CLASS->getUsernameLabel(Ljava/lang/String;)Ljava/lang/String;
+                    move-result-object v$textRegister
+                """
+            )
+        }
+
+        it.instructionMatches.last().methodReference.definingClass
+    }
+
+    // Post age: the header does not show an empty post age. Parameters: label, author label,
+    // domain label, details, post age, and more.
+    // Changed at the start of the method, after the icon calls, so their indexes stay valid.
+    PostHeaderFingerprint.method.apply {
+        val register = getFreeRegisterProvider(0, 1).getFreeRegister4Bit()
+
+        addInstructionsWithLabels(
+            0,
             """
-                invoke-static/range { v$textRegister .. v$textRegister }, $EXTENSION_CLASS->$extensionMethod(Ljava/lang/String;)Ljava/lang/String;
-                move-result-object v$textRegister
+                move-object/from16 v$register, p0
+                instance-of v$register, v$register, $usernameLabelType
+                if-eqz v$register, :show_post_age
+                invoke-static { }, $EXTENSION_CLASS->hideUsername()Z
+                move-result v$register
+                if-eqz v$register, :show_post_age
+                const-string p4, ""
+                :show_post_age
+                nop
             """
         )
+    }
+}
+
+private fun hideCompactUsername() {
+    CompactPostHeaderFingerprint.let {
+        it.method.apply {
+            val index = it.instructionMatches.last().index
+            // Parameters: label, text.
+            val registers = getInstruction(index).registersUsed
+            val textRegister = registers[1]
+            val freeRegister = findFreeRegister(index, registers)
+
+            // The header parameter at index 2 is whether the post age is shown.
+            // Without it, the post age and the separator before it are not shown.
+            addInstructionsAtControlFlowLabel(
+                index,
+                """
+                    invoke-static/range { v$textRegister .. v$textRegister }, $EXTENSION_CLASS->hideCompactLabel(Ljava/lang/String;)Z
+                    move-result v$freeRegister
+                    if-eqz v$freeRegister, :show_label
+                    const-string v$textRegister, ""
+                    const/16 p2, 0x0
+                    :show_label
+                    nop
+                """
+            )
+        }
     }
 }
