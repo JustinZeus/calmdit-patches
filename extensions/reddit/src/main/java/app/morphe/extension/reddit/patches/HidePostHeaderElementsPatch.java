@@ -20,6 +20,10 @@ import app.morphe.extension.shared.Logger;
  * the author with their avatar. The compact view shows the subreddit name or username
  * without an icon. The post age of a hidden username is hidden too, as it looks out of place
  * on its own.
+ * <p>
+ * Reddit 2026.47.0 and newer show the header of some feeds, such as subreddit feeds,
+ * with another layout (credit bar). While any element is hidden, these feeds use the header
+ * that the other feeds use.
  */
 @SuppressWarnings("unused")
 public final class HidePostHeaderElementsPatch {
@@ -51,6 +55,18 @@ public final class HidePostHeaderElementsPatch {
     @SuppressWarnings("SameReturnValue")
     public static boolean isPatchIncluded() {
         return false;  // Modified during patching.
+    }
+
+    /**
+     * Injection point.
+     *
+     * @param disabled If the credit bar layout is disabled for the header of posts in a feed.
+     */
+    public static boolean disableCreditBarHeader(boolean disabled) {
+        return disabled
+                || Settings.HIDE_FEED_POST_USERNAME.get()
+                || Settings.HIDE_FEED_POST_USER_AVATAR.get()
+                || Settings.HIDE_FEED_POST_SUBREDDIT_ICON.get();
     }
 
     private static boolean isUserAvatar(Object shape, @Nullable String url) {

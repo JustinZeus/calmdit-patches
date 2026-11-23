@@ -9,6 +9,7 @@
 package app.morphe.patches.reddit.layout.postheader
 
 import app.morphe.patcher.Fingerprint
+import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
 import app.morphe.patcher.patch.patch
@@ -18,6 +19,7 @@ import app.morphe.patcher.util.registersUsed
 import app.morphe.patcher.util.smali.ExternalLabel
 import app.morphe.patches.reddit.misc.settings.settingsPatch
 import app.morphe.patches.reddit.misc.version.is_2026_40_0_or_greater
+import app.morphe.patches.reddit.misc.version.is_2026_47_0_or_greater
 import app.morphe.patches.reddit.misc.version.versionCheckPatch
 import app.morphe.patches.reddit.shared.Constants.COMPATIBILITY_REDDIT
 import app.morphe.util.addInstructionsAtControlFlowLabel
@@ -32,7 +34,9 @@ val hidePostHeaderElementsPatch = patch(
     name = "Hide post header elements",
     description = "Adds options to hide the username, the user avatar and the subreddit icon " +
             "in the header of posts in the feeds. Hiding the username also hides its post age. " +
-            "The post detail screen is not changed. This patch works with Reddit 2026.40.0 and newer."
+            "The post detail screen is not changed. On Reddit 2026.47.0 and newer, feeds that " +
+            "show the newer header layout show the other layout while an element is hidden. " +
+            "This patch works with Reddit 2026.40.0 and newer."
 ) {
     compatibleWith(COMPATIBILITY_REDDIT)
 
@@ -53,6 +57,19 @@ val hidePostHeaderElementsPatch = patch(
         }
         CompactPostHeaderIconFingerprint.let {
             it.hideIconCall(it.instructionMatches.last().index)
+        }
+
+        // 2026.47.0+ shows the header of some feeds, such as subreddit feeds, with another
+        // layout (credit bar). Use the layout that the hooks above change while any element
+        // is hidden.
+        if (is_2026_47_0_or_greater) {
+            CreditBarHeaderEnabledFingerprint.method.addInstructions(
+                0,
+                """
+                    invoke-static { p1 }, $EXTENSION_CLASS->disableCreditBarHeader(Z)Z
+                    move-result p1
+                """
+            )
         }
 
         // Usernames and their post age, in feeds that show the author instead of the subreddit.

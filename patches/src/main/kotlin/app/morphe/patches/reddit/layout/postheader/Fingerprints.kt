@@ -10,40 +10,34 @@ package app.morphe.patches.reddit.layout.postheader
 
 import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.InstructionLocation.MatchAfterWithin
+import app.morphe.patcher.fieldAccess
 import app.morphe.patcher.methodCall
 import app.morphe.patcher.string
 import com.android.tools.smali.dexlib2.Opcode
 
 /**
- * Call of the icon of a post header in the feeds, which shows the subreddit icon or the avatar
- * of the user. Parameters: image shape, background color, image url, on click, size, and more.
+ * Icon of a post header in the feeds, which shows the subreddit icon or the avatar of the user.
+ * Parameters: image shape, background color, image url, on click, size, and more.
+ * The parameters after these differ between app versions.
  */
-private val headerIconCallFilter
-    get() = methodCall(
-        parameters = listOf(
-            "Lcom/reddit/feeds/model/ImageShape;",
-            "L",
-            "Ljava/lang/String;",
-            "Lkotlin/jvm/functions/Function0;",
-            "Lcom/reddit/ui/compose/ds/AvatarSize;",
-            "L",
-            "Ljava/lang/String;",
-            "Ljava/lang/String;",
-            "L",
-            "Z",
-            "Lkotlin/jvm/functions/Function0;",
-            "Z",
-            "Z",
-            "L",
-            "Z",
-            "L",
-            "I",
-            "I",
-            "I"
+internal object PostHeaderIconFingerprint : Fingerprint(
+    returnType = "V",
+    filters = listOf(
+        fieldAccess(
+            opcode = Opcode.SGET_OBJECT,
+            definingClass = "Lcom/reddit/mediametrics/analytics/MediaPlacement;",
+            name = "SNOOVATAR"
         ),
-        returnType = "V",
-        opcode = Opcode.INVOKE_STATIC_RANGE
+        fieldAccess(
+            opcode = Opcode.SGET_OBJECT,
+            definingClass = "Lcom/reddit/imagecomponent/avatar/api/AvatarPlacement;",
+            name = "USER_IMAGE"
+        )
     )
+)
+
+private val headerIconCallFilter
+    get() = methodCall(reference = { PostHeaderIconFingerprint.originalMethod })
 
 /**
  * Header of a post in the feeds with the card view. It shows the icon in one of two branches.
@@ -113,40 +107,53 @@ internal object MetadataHeaderElementLabelFingerprint : Fingerprint(
 )
 
 /**
+ * toString of the data of a post in the feeds with the compact view.
+ */
+internal object ClassicPostElementToStringFingerprint : Fingerprint(
+    name = "toString",
+    returnType = "Ljava/lang/String;",
+    filters = listOf(
+        string("ClassicPostElement(linkId=")
+    )
+)
+
+/**
  * Header of a post in the feeds with the compact view, which shows the subreddit name,
  * or the username in feeds that show the author, such as a subreddit feed.
- * Parameters: post data, feed context, ..., feed type, and more.
+ * Parameters: post data, feed context, whether the post age is shown, feed type, and more.
+ * The parameters after these differ between app versions.
  */
 internal object CompactPostHeaderFingerprint : Fingerprint(
     returnType = "V",
-    parameters = listOf(
-        "L",
-        "L",
-        "Z",
-        "Lcom/reddit/feeds/data/FeedType;",
-        "Ljava/lang/String;",
-        "L",
-        "Z",
-        "Z",
-        "Z",
-        "Z",
-        "Z",
-        "Z",
-        "Z",
-        "L",
-        "Z",
-        "Z",
-        "L",
-        "I"
-    ),
     filters = listOf(
-        string("r/"),
+        // A value of the post data.
+        fieldAccess(
+            opcode = Opcode.IGET_OBJECT,
+            definingClass = { ClassicPostElementToStringFingerprint.originalClassDef.type }
+        ),
         // Label, created with the text of the subreddit name or username.
         methodCall(
             definingClass = { MetadataHeaderElementLabelFingerprint.originalMethod.returnType },
             name = "<init>",
             parameters = listOf("Ljava/lang/String;"),
             returnType = "V"
+        )
+    )
+)
+
+/**
+ * If the posts of a feed show their header with another layout (credit bar), which 2026.47.0+
+ * uses for some feeds, such as subreddit feeds.
+ * Parameters: feed type, credit bar disabled, and more. It returns false if the second
+ * parameter is true.
+ */
+internal object CreditBarHeaderEnabledFingerprint : Fingerprint(
+    returnType = "Z",
+    parameters = listOf("Lcom/reddit/feeds/data/FeedType;", "Z", "L", "L"),
+    filters = listOf(
+        methodCall(
+            parameters = listOf("Lcom/reddit/feeds/data/FeedType;"),
+            returnType = "Lcom/reddit/feeds/impl/ui/converters/FeedCreditBarSurface;"
         )
     )
 )
