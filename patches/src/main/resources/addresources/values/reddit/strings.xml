@@ -186,6 +186,8 @@ To use an older version, you must &lt;b>uninstall&lt;/b> Reddit and then install
     <string name="morphe_hide_feed_post_user_avatar_summary">Hides the user avatar in the header of posts in the feeds</string>
     <string name="morphe_hide_feed_post_subreddit_icon_title">Hide subreddit icons in feeds</string>
     <string name="morphe_hide_feed_post_subreddit_icon_summary">Hides the subreddit icon in the header of posts in the feeds</string>
+    <string name="morphe_hide_feed_post_mod_badge_title">Hide mod badges in feeds</string>
+    <string name="morphe_hide_feed_post_mod_badge_summary">Hides the moderator and admin badge in the header of posts in the feeds</string>
     <string name="morphe_hide_trending_shelves_title">Hide Trending shelves</string>
     <string name="morphe_hide_trending_shelves_summary">Hides the Trending shelves from feed and search suggestions</string>
     <string name="morphe_hide_videos_for_you_shelf_title">Hide \'Videos for you\' shelf</string>

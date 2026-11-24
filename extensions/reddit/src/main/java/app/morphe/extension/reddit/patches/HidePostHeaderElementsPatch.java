@@ -66,7 +66,18 @@ public final class HidePostHeaderElementsPatch {
         return disabled
                 || Settings.HIDE_FEED_POST_USERNAME.get()
                 || Settings.HIDE_FEED_POST_USER_AVATAR.get()
-                || Settings.HIDE_FEED_POST_SUBREDDIT_ICON.get();
+                || Settings.HIDE_FEED_POST_SUBREDDIT_ICON.get()
+                || Settings.HIDE_FEED_POST_MOD_BADGE.get();
+    }
+
+    /**
+     * Injection point. Called with the mod or admin badge of the author of a post in the feeds.
+     *
+     * @return The badge, or null if it is not shown.
+     */
+    @Nullable
+    public static Object getModRoleIndicator(@Nullable Object indicator) {
+        return Settings.HIDE_FEED_POST_MOD_BADGE.get() ? null : indicator;
     }
 
     private static boolean isUserAvatar(Object shape, @Nullable String url) {

@@ -24,6 +24,7 @@ import app.morphe.patches.reddit.misc.version.versionCheckPatch
 import app.morphe.patches.reddit.shared.Constants.COMPATIBILITY_REDDIT
 import app.morphe.util.addInstructionsAtControlFlowLabel
 import app.morphe.util.setExtensionIsPatchIncluded
+import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import java.util.logging.Logger
 
 private const val EXTENSION_CLASS =
@@ -32,8 +33,9 @@ private const val EXTENSION_CLASS =
 @Suppress("unused")
 val hidePostHeaderElementsPatch = patch(
     name = "Hide post header elements",
-    description = "Adds options to hide the username, the user avatar and the subreddit icon " +
-            "in the header of posts in the feeds. Hiding the username also hides its post age. " +
+    description = "Adds options to hide the username, the user avatar, the subreddit icon and " +
+            "the mod badge in the header of posts in the feeds. Hiding the username also hides " +
+            "its post age. " +
             "The post detail screen is not changed. On Reddit 2026.47.0 and newer, feeds that " +
             "show the newer header layout show the other layout while an element is hidden. " +
             "This patch works with Reddit 2026.40.0 and newer."
@@ -77,7 +79,35 @@ val hidePostHeaderElementsPatch = patch(
         hideCardUsername()
         hideCompactUsername()
 
+        // Mod and admin badges of the author, which the data of the posts no longer gets.
+        listOf(
+            MetadataHeaderElementMapperFingerprint,
+            ClassicPostElementMapperFingerprint
+        ).forEach { it.hideModRoleIndicators() }
+
         setExtensionIsPatchIncluded(EXTENSION_CLASS)
+    }
+}
+
+/**
+ * Passes the mod and admin badges, which the matched filters read, through the extension.
+ */
+private fun Fingerprint.hideModRoleIndicators() {
+    method.apply {
+        // The mod badge, then the admin badge, after the status indicator. From the last change
+        // to the first, so the indexes stay valid.
+        listOf(instructionMatches[2], instructionMatches[1]).forEach { match ->
+            val register = getInstruction<OneRegisterInstruction>(match.index).registerA
+
+            addInstructions(
+                match.index + 1,
+                """
+                    invoke-static/range { v$register .. v$register }, $EXTENSION_CLASS->getModRoleIndicator(Ljava/lang/Object;)Ljava/lang/Object;
+                    move-result-object v$register
+                    check-cast v$register, $MOD_ROLE_INDICATOR_CLASS
+                """
+            )
+        }
     }
 }
 

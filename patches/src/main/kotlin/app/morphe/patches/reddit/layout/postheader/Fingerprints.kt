@@ -10,6 +10,7 @@ package app.morphe.patches.reddit.layout.postheader
 
 import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.InstructionLocation.MatchAfterWithin
+import app.morphe.patcher.checkCast
 import app.morphe.patcher.fieldAccess
 import app.morphe.patcher.methodCall
 import app.morphe.patcher.string
@@ -155,5 +156,39 @@ internal object CreditBarHeaderEnabledFingerprint : Fingerprint(
             parameters = listOf("Lcom/reddit/feeds/data/FeedType;"),
             returnType = "Lcom/reddit/feeds/impl/ui/converters/FeedCreditBarSurface;"
         )
+    )
+)
+
+internal const val MOD_ROLE_INDICATOR_CLASS = "Lcom/reddit/feeds/model/PostMetadataModRoleIndicator;"
+
+private fun modRoleIndicatorFilter(name: String) = fieldAccess(
+    opcode = Opcode.SGET_OBJECT,
+    definingClass = MOD_ROLE_INDICATOR_CLASS,
+    name = name
+)
+
+/**
+ * Creates the data of a post header in the feeds with the card view, with the mod and admin
+ * badges of the author from the status indicators of the post.
+ */
+internal object MetadataHeaderElementMapperFingerprint : Fingerprint(
+    returnType = { MetadataHeaderElementToStringFingerprint.originalClassDef.type },
+    filters = listOf(
+        checkCast("Lcom/reddit/type/PostStatusIndicatorType;"),
+        modRoleIndicatorFilter("MODERATOR"),
+        modRoleIndicatorFilter("ADMIN")
+    )
+)
+
+/**
+ * Creates the data of a post in the feeds with the compact view, with the mod and admin
+ * badges of the author from the status indicators of the post.
+ */
+internal object ClassicPostElementMapperFingerprint : Fingerprint(
+    returnType = { ClassicPostElementToStringFingerprint.originalClassDef.type },
+    filters = listOf(
+        checkCast("Lcom/reddit/type/PostStatusIndicatorType;"),
+        modRoleIndicatorFilter("MODERATOR"),
+        modRoleIndicatorFilter("ADMIN")
     )
 )

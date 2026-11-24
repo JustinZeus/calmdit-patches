@@ -265,6 +265,10 @@ public class LayoutPreferenceCategory extends ConditionalPreferenceCategory {
                     context,
                     Settings.HIDE_FEED_POST_SUBREDDIT_ICON
             ));
+            addPreference(new BooleanSettingPreference(
+                    context,
+                    Settings.HIDE_FEED_POST_MOD_BADGE
+            ));
         }
 
         if (HideRelatedPostsSectionPatch.isPatchIncluded()) {
