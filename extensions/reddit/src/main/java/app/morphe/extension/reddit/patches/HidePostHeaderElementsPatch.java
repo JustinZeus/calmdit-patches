@@ -67,7 +67,29 @@ public final class HidePostHeaderElementsPatch {
                 || Settings.HIDE_FEED_POST_USERNAME.get()
                 || Settings.HIDE_FEED_POST_USER_AVATAR.get()
                 || Settings.HIDE_FEED_POST_SUBREDDIT_ICON.get()
-                || Settings.HIDE_FEED_POST_MOD_BADGE.get();
+                || Settings.HIDE_FEED_POST_MOD_BADGE.get()
+                || Settings.HIDE_FEED_POST_HEADER.get();
+    }
+
+    /**
+     * Injection point. Called by the header of a post in the card view that shows the username.
+     *
+     * @return If the header is not shown.
+     */
+    public static boolean hidePostHeader() {
+        return Settings.HIDE_FEED_POST_HEADER.get();
+    }
+
+    /**
+     * Injection point. Called by the header of a post in the compact view.
+     *
+     * @param label Subreddit name or username of the header, or an empty username
+     *              if usernames are hidden.
+     * @return If the header is not shown.
+     */
+    public static boolean hideCompactPostHeader(@Nullable String label) {
+        return Settings.HIDE_FEED_POST_HEADER.get() && label != null
+                && (label.isEmpty() || label.startsWith(USERNAME_PREFIX));
     }
 
     /**

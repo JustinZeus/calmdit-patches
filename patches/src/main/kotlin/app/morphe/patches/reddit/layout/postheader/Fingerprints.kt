@@ -192,3 +192,20 @@ internal object ClassicPostElementMapperFingerprint : Fingerprint(
         modRoleIndicatorFilter("ADMIN")
     )
 )
+
+/**
+ * Header of a post in the feeds with the compact view: the label, the post age and more,
+ * and the menu button. The first parameter is the label.
+ */
+internal object CompactPostHeaderRowFingerprint : Fingerprint(
+    returnType = "V",
+    filters = listOf(
+        // Text of the label.
+        fieldAccess(
+            opcode = Opcode.IGET_OBJECT,
+            definingClass = { MetadataHeaderElementLabelFingerprint.originalMethod.returnType },
+            type = "Ljava/lang/String;"
+        ),
+        string("post_classic_header")
+    )
+)

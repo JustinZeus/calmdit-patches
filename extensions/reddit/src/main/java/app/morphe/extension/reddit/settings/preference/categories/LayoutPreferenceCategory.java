@@ -269,6 +269,10 @@ public class LayoutPreferenceCategory extends ConditionalPreferenceCategory {
                     context,
                     Settings.HIDE_FEED_POST_MOD_BADGE
             ));
+            addPreference(new BooleanSettingPreference(
+                    context,
+                    Settings.HIDE_FEED_POST_HEADER
+            ));
         }
 
         if (HideRelatedPostsSectionPatch.isPatchIncluded()) {

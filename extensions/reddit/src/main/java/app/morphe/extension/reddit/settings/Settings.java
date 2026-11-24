@@ -126,6 +126,7 @@ public class Settings extends BaseSettings {
     public static final BooleanSetting HIDE_COMMUNITIES_SHELF = new BooleanSetting("morphe_hide_communities_shelf", FALSE, true);
     public static final BooleanSetting HIDE_COMMUNITY_HIGHLIGHTS = new BooleanSetting("morphe_hide_community_highlights", FALSE, true);
     public static final BooleanSetting HIDE_COMMUNITY_MENU_BADGE = new BooleanSetting("morphe_hide_community_menu_badge", FALSE, true);
+    public static final BooleanSetting HIDE_FEED_POST_HEADER = new BooleanSetting("morphe_hide_feed_post_header", FALSE, true);
     public static final BooleanSetting HIDE_FEED_POST_MOD_BADGE = new BooleanSetting("morphe_hide_feed_post_mod_badge", FALSE, true);
     public static final BooleanSetting HIDE_FEED_POST_SUBREDDIT_ICON = new BooleanSetting("morphe_hide_feed_post_subreddit_icon", FALSE, true);
     public static final BooleanSetting HIDE_FEED_POST_USER_AVATAR = new BooleanSetting("morphe_hide_feed_post_user_avatar", FALSE, true);

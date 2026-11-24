@@ -34,7 +34,8 @@ private const val EXTENSION_CLASS =
 val hidePostHeaderElementsPatch = patch(
     name = "Hide post header elements",
     description = "Adds options to hide the username, the user avatar, the subreddit icon and " +
-            "the mod badge in the header of posts in the feeds. Hiding the username also hides " +
+            "the mod badge in the header of posts in the feeds, and the whole header of posts " +
+            "that show the author, such as in subreddit feeds. Hiding the username also hides " +
             "its post age. " +
             "The post detail screen is not changed. On Reddit 2026.47.0 and newer, feeds that " +
             "show the newer header layout show the other layout while an element is hidden. " +
@@ -76,8 +77,10 @@ val hidePostHeaderElementsPatch = patch(
 
         // Usernames and their post age, in feeds that show the author instead of the subreddit.
         // The post age is hidden too, as it looks out of place without the username.
+        // The whole header of these posts can be hidden too.
         hideCardUsername()
         hideCompactUsername()
+        hideCompactHeaderRow()
 
         // Mod and admin badges of the author, which the data of the posts no longer gets.
         listOf(
@@ -153,8 +156,9 @@ private fun hideCardUsername() {
         it.instructionMatches.last().methodReference.definingClass
     }
 
-    // Post age: the header does not show an empty post age. Parameters: label, author label,
-    // domain label, details, post age, and more.
+    // Header of posts that show the username, and the post age: the header does not show
+    // an empty post age. Parameters: label, author label, domain label, details, post age,
+    // and more.
     // Changed at the start of the method, after the icon calls, so their indexes stay valid.
     PostHeaderFingerprint.method.apply {
         val register = getFreeRegisterProvider(0, 1).getFreeRegister4Bit()
@@ -165,6 +169,11 @@ private fun hideCardUsername() {
                 move-object/from16 v$register, p0
                 instance-of v$register, v$register, $usernameLabelType
                 if-eqz v$register, :show_post_age
+                invoke-static { }, $EXTENSION_CLASS->hidePostHeader()Z
+                move-result v$register
+                if-eqz v$register, :show_header
+                return-void
+                :show_header
                 invoke-static { }, $EXTENSION_CLASS->hideUsername()Z
                 move-result v$register
                 if-eqz v$register, :show_post_age
@@ -173,6 +182,29 @@ private fun hideCardUsername() {
                 nop
             """
         )
+    }
+}
+
+private fun hideCompactHeaderRow() {
+    CompactPostHeaderRowFingerprint.let {
+        it.method.apply {
+            val labelTextField = it.instructionMatches.first().fieldReference
+            val register = getFreeRegisterProvider(0, 1).getFreeRegister4Bit()
+
+            addInstructionsWithLabels(
+                0,
+                """
+                    move-object/from16 v$register, p0
+                    iget-object v$register, v$register, $labelTextField
+                    invoke-static { v$register }, $EXTENSION_CLASS->hideCompactPostHeader(Ljava/lang/String;)Z
+                    move-result v$register
+                    if-eqz v$register, :show_header
+                    return-void
+                    :show_header
+                    nop
+                """
+            )
+        }
     }
 }
 
