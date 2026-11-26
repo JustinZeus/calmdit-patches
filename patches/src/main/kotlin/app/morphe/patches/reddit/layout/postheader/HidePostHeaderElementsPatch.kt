@@ -13,6 +13,7 @@ import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
 import app.morphe.patcher.patch.PatchException
+import app.morphe.patcher.patch.mutableClassDefBy
 import app.morphe.patcher.patch.patch
 import app.morphe.patcher.util.findFreeRegister
 import app.morphe.patcher.util.getFreeRegisterProvider
@@ -30,6 +31,9 @@ import java.util.logging.Logger
 
 private const val EXTENSION_CLASS =
     "Lapp/morphe/extension/reddit/patches/HidePostHeaderElementsPatch;"
+
+private const val EXTENSION_USERNAME_LABEL_INTERFACE =
+    $$"Lapp/morphe/extension/reddit/patches/HidePostHeaderElementsPatch$UsernameLabel;"
 
 @Suppress("unused")
 val hidePostHeaderElementsPatch = patch(
@@ -53,14 +57,23 @@ val hidePostHeaderElementsPatch = patch(
             )
         }
 
-        // Icons: the card view header shows the icon in one of two branches.
+        // Icons: the card view header shows the icon in one of two branches. Its label tells if
+        // the icon is the avatar of the author or the subreddit icon. The label parameter is
+        // never changed in the method. The compact view header only shows subreddit icons.
         // From the last change to the first, so the indexes stay valid.
         PostHeaderFingerprint.let {
-            it.hideIconCall(it.instructionMatches[3].index)
-            it.hideIconCall(it.instructionMatches[1].index)
+            it.requireParameter(0, MetadataHeaderElementLabelFingerprint.originalMethod.returnType)
+
+            val hideCardIcon =
+                "invoke-static/range { p0 .. p0 }, $EXTENSION_CLASS->hideCardIcon(Ljava/lang/Object;)Z"
+            it.hideIconCall(it.instructionMatches[3].index, hideCardIcon)
+            it.hideIconCall(it.instructionMatches[1].index, hideCardIcon)
         }
         CompactPostHeaderIconFingerprint.let {
-            it.hideIconCall(it.instructionMatches.last().index)
+            it.hideIconCall(
+                it.instructionMatches.last().index,
+                "invoke-static { }, $EXTENSION_CLASS->hideCompactIcon()Z"
+            )
         }
 
         // 2026.47.0+ shows the header of some feeds, such as subreddit feeds, with another
@@ -116,19 +129,17 @@ private fun Fingerprint.hideModRoleIndicators() {
 }
 
 /**
- * Skips the call of a header icon at [index] if the extension hides it.
+ * Skips the call of a header icon at [index] if the extension method that [hideIcon] calls
+ * returns true.
  */
-private fun Fingerprint.hideIconCall(index: Int) {
+private fun Fingerprint.hideIconCall(index: Int, hideIcon: String) {
     method.apply {
-        // Parameters: image shape, background color, image url. The registers are consecutive,
-        // as the call uses a register range.
-        val registers = getInstruction(index).registersUsed
-        val freeRegister = findFreeRegister(index, registers)
+        val freeRegister = findFreeRegister(index)
 
         addInstructionsAtControlFlowLabel(
             index,
             """
-                invoke-static/range { v${registers[0]} .. v${registers[2]} }, $EXTENSION_CLASS->hideIcon(Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/String;)Z
+                $hideIcon
                 move-result v$freeRegister
                 if-nez v$freeRegister, :hide_icon
             """,
@@ -156,6 +167,9 @@ private fun hideCardUsername() {
 
         it.instructionMatches.last().methodReference.definingClass
     }
+
+    // Mark the username label, so the extension can tell which header icon is an avatar.
+    mutableClassDefBy(usernameLabelType).interfaces.add(EXTENSION_USERNAME_LABEL_INTERFACE)
 
     // Header of posts that show the username, and the post age: the header does not show
     // an empty post age. Parameters: label, author label, domain label, details, post age,
@@ -202,7 +216,11 @@ private fun hideCompactHeaderRow() {
             addInstructionsWithLabels(
                 0,
                 """
+                    invoke-static { }, $EXTENSION_CLASS->hidePostHeader()Z
+                    move-result v$register
+                    if-eqz v$register, :show_header
                     move-object/from16 v$register, p0
+                    if-eqz v$register, :show_header
                     iget-object v$register, v$register, $labelTextField
                     invoke-static { v$register }, $EXTENSION_CLASS->hideCompactPostHeader(Ljava/lang/String;)Z
                     move-result v$register
@@ -218,26 +236,26 @@ private fun hideCompactHeaderRow() {
 
 private fun hideCompactUsername() {
     CompactPostHeaderFingerprint.let {
-        it.requireParameter(2, "Z")
-        it.requireParameter(3, "Lcom/reddit/feeds/data/FeedType;")
-
         it.method.apply {
-            val index = it.instructionMatches.last().index
+            val labelIndex = it.instructionMatches[1].index
             // Parameters: label, text.
-            val registers = getInstruction(index).registersUsed
+            val registers = getInstruction(labelIndex).registersUsed
             val textRegister = registers[1]
-            val freeRegister = findFreeRegister(index, registers)
+            val freeRegister = findFreeRegister(labelIndex, registers)
+            // The check after the label of whether the post age is shown, which is the header
+            // parameter at index 2. Without it, the post age and the separator before it
+            // are not shown.
+            val showPostAgeRegister =
+                getInstruction<OneRegisterInstruction>(it.instructionMatches[2].index).registerA
 
-            // The header parameter at index 2 is whether the post age is shown.
-            // Without it, the post age and the separator before it are not shown.
             addInstructionsAtControlFlowLabel(
-                index,
+                labelIndex,
                 """
                     invoke-static/range { v$textRegister .. v$textRegister }, $EXTENSION_CLASS->hideCompactLabel(Ljava/lang/String;)Z
                     move-result v$freeRegister
                     if-eqz v$freeRegister, :show_label
                     const-string v$textRegister, ""
-                    const/16 p2, 0x0
+                    const/16 v$showPostAgeRegister, 0x0
                     :show_label
                     nop
                 """

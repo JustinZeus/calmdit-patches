@@ -178,8 +178,6 @@ To use an older version, you must &lt;b>uninstall&lt;/b> Reddit and then install
     <string name="morphe_hide_interactive_posts_summary">Hides game and other interactive app posts from the home feed and other recommended feeds</string>
     <string name="morphe_hide_people_also_search_for_section_title">Hide \'People also search for\' section</string>
     <string name="morphe_hide_people_also_search_for_section_summary">Hides the \'People also search for\' section from search results</string>
-    <string name="morphe_hide_related_posts_section_title">Hide \'Related Posts\' section</string>
-    <string name="morphe_hide_related_posts_section_summary">Hides the \'Related Posts\' section below the comments of a post</string>
     <string name="morphe_hide_feed_post_username_title">Hide usernames in feeds</string>
     <string name="morphe_hide_feed_post_username_summary">Hides the username and its post age in the header of posts in the feeds</string>
     <string name="morphe_hide_feed_post_user_avatar_title">Hide user avatars in feeds</string>
@@ -190,6 +188,8 @@ To use an older version, you must &lt;b>uninstall&lt;/b> Reddit and then install
     <string name="morphe_hide_feed_post_mod_badge_summary">Hides the moderator and admin badge in the header of posts in the feeds</string>
     <string name="morphe_hide_feed_post_header_title">Hide post header in subreddit feeds</string>
     <string name="morphe_hide_feed_post_header_summary">Hides the whole header, including the menu button, of posts that show the author, such as in subreddit feeds</string>
+    <string name="morphe_hide_related_posts_section_title">Hide \'Related Posts\' section</string>
+    <string name="morphe_hide_related_posts_section_summary">Hides the \'Related Posts\' section below the comments of a post</string>
     <string name="morphe_hide_trending_shelves_title">Hide Trending shelves</string>
     <string name="morphe_hide_trending_shelves_summary">Hides the Trending shelves from feed and search suggestions</string>
     <string name="morphe_hide_videos_for_you_shelf_title">Hide \'Videos for you\' shelf</string>

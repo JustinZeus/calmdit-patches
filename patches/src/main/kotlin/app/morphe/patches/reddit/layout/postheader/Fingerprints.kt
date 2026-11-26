@@ -9,10 +9,12 @@
 package app.morphe.patches.reddit.layout.postheader
 
 import app.morphe.patcher.Fingerprint
+import app.morphe.patcher.InstructionLocation.MatchAfterImmediately
 import app.morphe.patcher.InstructionLocation.MatchAfterWithin
 import app.morphe.patcher.checkCast
 import app.morphe.patcher.fieldAccess
 import app.morphe.patcher.methodCall
+import app.morphe.patcher.opcode
 import app.morphe.patcher.string
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
@@ -141,7 +143,9 @@ internal object CompactPostHeaderFingerprint : Fingerprint(
             name = "<init>",
             parameters = listOf("Ljava/lang/String;"),
             returnType = "V"
-        )
+        ),
+        // If the post age is shown.
+        opcode(Opcode.IF_EQZ, location = MatchAfterImmediately())
     )
 )
 

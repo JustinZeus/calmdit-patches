@@ -11,7 +11,6 @@ package app.morphe.extension.reddit.patches;
 import androidx.annotation.Nullable;
 
 import app.morphe.extension.reddit.settings.Settings;
-import app.morphe.extension.shared.Logger;
 
 /**
  * Hides the username, the user avatar and the subreddit icon in the header of posts in the feeds.
@@ -29,20 +28,10 @@ import app.morphe.extension.shared.Logger;
 public final class HidePostHeaderElementsPatch {
 
     /**
-     * Image shapes of the header icon that are only used for user avatars.
-     * Other shapes are used for both, and are told apart by the image url.
+     * Added during patching to the label of a post header that shows the username.
      */
-    private static final String SHAPE_SNOO_AVATAR = "HEX";
-    private static final String SHAPE_USER_IMAGE = "ROUND_WITH_BORDER";
-
-    /**
-     * Url parts of user avatars: default avatars, uploaded images and Snoo avatars.
-     */
-    private static final String[] USER_AVATAR_URL_PARTS = {
-            "avatar_default_",
-            "profileIcon_",
-            "snoovatar/avatars/"
-    };
+    public interface UsernameLabel {
+    }
 
     private static final String USERNAME_PREFIX = "u/";
 
@@ -72,9 +61,10 @@ public final class HidePostHeaderElementsPatch {
     }
 
     /**
-     * Injection point. Called by the header of a post in the card view that shows the username.
+     * Injection point. Called by the header of a post in the card view that shows the username,
+     * and by the header of a post in the compact view.
      *
-     * @return If the header is not shown.
+     * @return If the header of posts that show the author is not shown.
      */
     public static boolean hidePostHeader() {
         return Settings.HIDE_FEED_POST_HEADER.get();
@@ -83,13 +73,11 @@ public final class HidePostHeaderElementsPatch {
     /**
      * Injection point. Called by the header of a post in the compact view.
      *
-     * @param label Subreddit name or username of the header, or an empty username
-     *              if usernames are hidden.
+     * @param label Subreddit name or username of the header.
      * @return If the header is not shown.
      */
     public static boolean hideCompactPostHeader(@Nullable String label) {
-        return Settings.HIDE_FEED_POST_HEADER.get() && label != null
-                && (label.isEmpty() || label.startsWith(USERNAME_PREFIX));
+        return label != null && label.startsWith(USERNAME_PREFIX);
     }
 
     /**
@@ -102,41 +90,27 @@ public final class HidePostHeaderElementsPatch {
         return Settings.HIDE_FEED_POST_MOD_BADGE.get() ? null : indicator;
     }
 
-    private static boolean isUserAvatar(Object shape, @Nullable String url) {
-        String shapeName = ((Enum<?>) shape).name();
-        if (SHAPE_SNOO_AVATAR.equals(shapeName) || SHAPE_USER_IMAGE.equals(shapeName)) {
-            return true;
-        }
-
-        if (url == null) return false;
-
-        for (String part : USER_AVATAR_URL_PARTS) {
-            if (url.contains(part)) return true;
-        }
-        return false;
+    /**
+     * Injection point. Called by the header of a post in the card view before it shows its icon.
+     *
+     * @param label Label of the header. Its icon is the avatar of the author if the label
+     *              is the username, or else the subreddit icon.
+     * @return If the icon is not shown.
+     */
+    public static boolean hideCardIcon(Object label) {
+        return label instanceof UsernameLabel
+                ? Settings.HIDE_FEED_POST_USER_AVATAR.get()
+                : Settings.HIDE_FEED_POST_SUBREDDIT_ICON.get();
     }
 
     /**
-     * Injection point.
+     * Injection point. Called by the header of a post in the compact view before it shows its
+     * icon, which is the subreddit icon.
      *
-     * @param shape Image shape enum of the icon.
-     * @param color Background color of the icon, or null.
-     * @param url   Image url of the icon, or null.
-     * @return If the icon in the header of a post is not shown.
+     * @return If the icon is not shown.
      */
-    public static boolean hideIcon(Object shape, @Nullable Object color, @Nullable String url) {
-        try {
-            final boolean hideUserAvatar = Settings.HIDE_FEED_POST_USER_AVATAR.get();
-            final boolean hideSubredditIcon = Settings.HIDE_FEED_POST_SUBREDDIT_ICON.get();
-            if (!hideUserAvatar && !hideSubredditIcon) {
-                return false;
-            }
-
-            return isUserAvatar(shape, url) ? hideUserAvatar : hideSubredditIcon;
-        } catch (Exception ex) {
-            Logger.printException(() -> "hideIcon failure", ex);
-            return false;
-        }
+    public static boolean hideCompactIcon() {
+        return Settings.HIDE_FEED_POST_SUBREDDIT_ICON.get();
     }
 
     /**
@@ -157,12 +131,14 @@ public final class HidePostHeaderElementsPatch {
 
     /**
      * Injection point. Called with the subreddit name or username that the header of a post
-     * in the compact view shows.
+     * in the compact view shows. If the whole header of the post is hidden, the label keeps
+     * the username, so the header can tell that it shows the author.
      *
      * @return If the username and its post age are not shown.
      */
     public static boolean hideCompactLabel(@Nullable String label) {
         return Settings.HIDE_FEED_POST_USERNAME.get()
+                && !Settings.HIDE_FEED_POST_HEADER.get()
                 && label != null && label.startsWith(USERNAME_PREFIX);
     }
 }
