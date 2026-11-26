@@ -14,6 +14,7 @@ import app.morphe.patcher.checkCast
 import app.morphe.patcher.fieldAccess
 import app.morphe.patcher.methodCall
 import app.morphe.patcher.string
+import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
 
 /**
@@ -44,6 +45,7 @@ private val headerIconCallFilter
  * Header of a post in the feeds with the card view. It shows the icon in one of two branches.
  */
 internal object PostHeaderFingerprint : Fingerprint(
+    accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.STATIC, AccessFlags.FINAL),
     returnType = "V",
     filters = listOf(
         string("post_subreddit_icon"),
@@ -125,6 +127,7 @@ internal object ClassicPostElementToStringFingerprint : Fingerprint(
  * The parameters after these differ between app versions.
  */
 internal object CompactPostHeaderFingerprint : Fingerprint(
+    accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.STATIC, AccessFlags.FINAL),
     returnType = "V",
     filters = listOf(
         // A value of the post data.
@@ -149,6 +152,7 @@ internal object CompactPostHeaderFingerprint : Fingerprint(
  * parameter is true.
  */
 internal object CreditBarHeaderEnabledFingerprint : Fingerprint(
+    accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.STATIC, AccessFlags.FINAL),
     returnType = "Z",
     parameters = listOf("Lcom/reddit/feeds/data/FeedType;", "Z", "L", "L"),
     filters = listOf(
@@ -198,6 +202,7 @@ internal object ClassicPostElementMapperFingerprint : Fingerprint(
  * and the menu button. The first parameter is the label.
  */
 internal object CompactPostHeaderRowFingerprint : Fingerprint(
+    accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.STATIC, AccessFlags.FINAL),
     returnType = "V",
     filters = listOf(
         // Text of the label.

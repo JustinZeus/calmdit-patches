@@ -12,6 +12,7 @@ import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
+import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.patch
 import app.morphe.patcher.util.findFreeRegister
 import app.morphe.patcher.util.getFreeRegisterProvider
@@ -160,6 +161,10 @@ private fun hideCardUsername() {
     // an empty post age. Parameters: label, author label, domain label, details, post age,
     // and more.
     // Changed at the start of the method, after the icon calls, so their indexes stay valid.
+    PostHeaderFingerprint.let {
+        it.requireParameter(0, MetadataHeaderElementLabelFingerprint.originalMethod.returnType)
+        it.requireParameter(4, "Ljava/lang/String;")
+    }
     PostHeaderFingerprint.method.apply {
         val register = getFreeRegisterProvider(0, 1).getFreeRegister4Bit()
 
@@ -187,6 +192,9 @@ private fun hideCardUsername() {
 
 private fun hideCompactHeaderRow() {
     CompactPostHeaderRowFingerprint.let {
+        // The first parameter is the label.
+        it.requireParameter(0, MetadataHeaderElementLabelFingerprint.originalMethod.returnType)
+
         it.method.apply {
             val labelTextField = it.instructionMatches.first().fieldReference
             val register = getFreeRegisterProvider(0, 1).getFreeRegister4Bit()
@@ -210,6 +218,9 @@ private fun hideCompactHeaderRow() {
 
 private fun hideCompactUsername() {
     CompactPostHeaderFingerprint.let {
+        it.requireParameter(2, "Z")
+        it.requireParameter(3, "Lcom/reddit/feeds/data/FeedType;")
+
         it.method.apply {
             val index = it.instructionMatches.last().index
             // Parameters: label, text.
@@ -232,5 +243,16 @@ private fun hideCompactUsername() {
                 """
             )
         }
+    }
+}
+
+/**
+ * Fails patching if the parameter at [index] of the matched method is not of [type],
+ * as the changes use the register of that parameter.
+ */
+private fun Fingerprint.requireParameter(index: Int, type: String) {
+    val actualType = originalMethod.parameterTypes.getOrNull(index)?.toString()
+    if (actualType != type) {
+        throw PatchException("Parameter $index of ${originalMethod.name} is $actualType instead of $type")
     }
 }
