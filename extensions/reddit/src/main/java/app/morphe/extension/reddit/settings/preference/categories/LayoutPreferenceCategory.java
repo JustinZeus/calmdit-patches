@@ -39,6 +39,7 @@ import app.morphe.extension.reddit.patches.HideHomeTabsPatch;
 import app.morphe.extension.reddit.patches.HideInteractivePostsPatch;
 import app.morphe.extension.reddit.patches.HideMediaViewerComponentsPatch;
 import app.morphe.extension.reddit.patches.HidePeopleAlsoSearchForSectionPatch;
+import app.morphe.extension.reddit.patches.HidePostHeaderElementsPatch;
 import app.morphe.extension.reddit.patches.HideRelatedPostsSectionPatch;
 import app.morphe.extension.reddit.patches.HideTrendingShelvesPatch;
 import app.morphe.extension.reddit.patches.HideVideosForYouShelfPatch;
@@ -112,6 +113,7 @@ public class LayoutPreferenceCategory extends ConditionalPreferenceCategory {
                 SeeThroughStatusBarPatch.isPatchIncluded() ||
                 ShowViewCountPatch.isPatchIncluded() ||
                 FlipPostActionBarPatch.isPatchIncluded() ||
+                HidePostHeaderElementsPatch.isPatchIncluded() ||
                 FullScreenReplyPatch.isPatchIncluded() ||
                 AutoModeratorCommentsPatch.isPatchIncluded() ||
                 HideCommentFlairsAndBadgesPatch.isPatchIncluded() ||
@@ -400,6 +402,29 @@ public class LayoutPreferenceCategory extends ConditionalPreferenceCategory {
             addPreference(new BooleanSettingPreference(
                     context,
                     Settings.SWAP_POST_VOTE_COMMENT_BUTTONS
+            ));
+        }
+
+        if (HidePostHeaderElementsPatch.isPatchIncluded()) {
+            addPreference(new BooleanSettingPreference(
+                    context,
+                    Settings.HIDE_FEED_POST_USERNAME
+            ));
+            addPreference(new BooleanSettingPreference(
+                    context,
+                    Settings.HIDE_FEED_POST_USER_AVATAR
+            ));
+            addPreference(new BooleanSettingPreference(
+                    context,
+                    Settings.HIDE_FEED_POST_SUBREDDIT_ICON
+            ));
+            addPreference(new BooleanSettingPreference(
+                    context,
+                    Settings.HIDE_FEED_POST_MOD_BADGE
+            ));
+            addPreference(new BooleanSettingPreference(
+                    context,
+                    Settings.HIDE_FEED_POST_HEADER
             ));
         }
 

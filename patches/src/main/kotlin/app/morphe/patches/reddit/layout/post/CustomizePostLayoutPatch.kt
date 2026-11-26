@@ -21,6 +21,7 @@ import app.morphe.patches.reddit.misc.flag.featureFlagHookPatch
 import app.morphe.patches.reddit.misc.flag.hookFeatureFlag
 import app.morphe.patches.reddit.misc.settings.settingsPatch
 import app.morphe.patches.reddit.misc.version.is_2026_39_0_or_greater
+import app.morphe.patches.reddit.misc.version.is_2026_40_0_or_greater
 import app.morphe.patches.reddit.misc.version.versionCheckPatch
 import app.morphe.patches.reddit.shared.Constants.COMPATIBILITY_REDDIT
 import app.morphe.util.addInstructionsAtControlFlowLabel
@@ -41,8 +42,10 @@ private const val EXTENSION_ROW_ARRANGEMENT_CLASS =
 val customizePostLayoutPatch = patch(
     name = "Customize post layout",
     description = "Adds options to show or hide the view count of posts, to move the vote and comment buttons " +
-            "of posts to the right side, and to swap the vote and comment buttons. " +
-            "Moving and swapping the buttons works with Reddit 2026.39.0 and newer."
+            "of posts to the right side, to swap the vote and comment buttons, and to hide the username, " +
+            "user avatar, subreddit icon, mod badge or whole header of posts in the feeds. " +
+            "Moving and swapping the buttons works with Reddit 2026.39.0 and newer, " +
+            "and hiding the header elements works with Reddit 2026.40.0 and newer."
 ) {
     compatibleWith(COMPATIBILITY_REDDIT)
 
@@ -62,6 +65,14 @@ val customizePostLayoutPatch = patch(
         } else {
             Logger.getLogger(this::class.java.name).warning(
                 "'Customize post layout' action bar options require Reddit 2026.39.0+"
+            )
+        }
+
+        if (is_2026_40_0_or_greater) {
+            hidePostHeaderElements()
+        } else {
+            Logger.getLogger(this::class.java.name).warning(
+                "'Customize post layout' header options require Reddit 2026.40.0+"
             )
         }
     }
